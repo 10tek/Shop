@@ -23,34 +23,35 @@ namespace Shop.UI
     {
         static void Main(string[] args)
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings", false, true);
-            IConfigurationRoot configurationRoot = builder.Build();
+            #region
+            //var builder = new ConfigurationBuilder()
+            //    .SetBasePath(Directory.GetCurrentDirectory())
+            //    .AddJsonFile("appsettings", false, true);
+            //IConfigurationRoot configurationRoot = builder.Build();
 
-            #region main
-            Category category = new Category
-            {
-                Name = "Бытовая техника",
-                ImagePath = @"C:/data",
-            };
+            //#region main
+            //Category category = new Category
+            //{
+            //    Name = "Бытовая техника",
+            //    ImagePath = @"C:/data",
+            //};
 
-            ICategoryRepository repository = new CategoryRepository(configurationRoot.GetConnectionString("DebugConnectionString"));
-            repository.Add(category);
-            var result = repository.GetAll();
+            //ICategoryRepository repository = new CategoryRepository(configurationRoot.GetConnectionString("DebugConnectionString"));
+            //repository.Add(category);
+            //var result = repository.GetAll();
 
 
             #endregion
             #region Repository Test
-            //Repository<User> repository = new Repository<User>();
-            //repository.Add(new User
-            //{
-            //    Address = "Abay st. 129",
-            //    Email = "10tek3@mail.com",
-            //    Password = "123",
-            //    PhoneNumber = "+77786226134",
-            //    VerificationCode = "123"
-            //});
+            Repository<User> repository = new Repository<User>();
+            repository.Add(new User
+            { 
+                Address = "Abay st. 129",
+                Email = "10tek3@mail.com",
+                Password = "123",
+                PhoneNumber = "+77786226134",
+                VerificationCode = "123"
+            });
             #endregion
 
 
