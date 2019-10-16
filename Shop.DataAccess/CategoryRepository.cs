@@ -2,8 +2,7 @@
 using Shop.Domain;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
-using System.Data.SqlClient;
+using System.Data.Common;
 
 namespace Shop.DataAccess
 {
@@ -16,78 +15,88 @@ namespace Shop.DataAccess
          * 4. Закрыть подключение
         */
         private readonly string connectionString;
-        SqlConnection connection;
+        private readonly DbProviderFactory providerFactory;
 
-        public CategoryRepository(string connectionsString)
+        public CategoryRepository(string connectionsString, string providerInvariantName)
         {
             this.connectionString = connectionsString;
-            connection = new SqlConnection(connectionString);
-        }
-
-        ~CategoryRepository()
-        {
-            connection.Close();
+            providerFactory = DbProviderFactories.GetFactory(providerInvariantName);
         }
 
         public void Add(Category category)
         {
-            using (SqlCommand sqlCommand = connection.CreateCommand())
+            using (DbConnection connection = providerFactory.CreateConnection())
+            using (DbCommand sqlCommand = connection.CreateCommand())
             {
                 string query = $"insert into Categories (id, creationDate, name, imagePath)  values(@Id, @CreationDate, @DeletedDate, @Name, @ImagePath);";
                 sqlCommand.CommandText = query;
 
-                SqlParameter parameter = new SqlParameter
-                {
-                    SqlDbType = System.Data.SqlDbType.UniqueIdentifier,
-                    ParameterName = "@Id",
-                    Value = category.Id,
-                };
+                DbParameter parameter = providerFactory.CreateParameter();
+                parameter.DbType = System.Data.DbType.Guid;
+                parameter.ParameterName = "@Id";
+                parameter.Value = category.Id;
+
                 sqlCommand.Parameters.Add(parameter);
 
-                parameter = new SqlParameter();
-                parameter.SqlDbType = System.Data.SqlDbType.DateTime;
+                parameter = providerFactory.CreateParameter();
+                parameter.DbType = System.Data.DbType.DateTime;
                 parameter.ParameterName = "@CreationDate";
                 parameter.Value = category.CreationDate;
                 sqlCommand.Parameters.Add(parameter);
 
-                parameter = new SqlParameter();
-                parameter.SqlDbType = System.Data.SqlDbType.NVarChar;
+                parameter = providerFactory.CreateParameter();
+                parameter.DbType = System.Data.DbType.String;
                 parameter.ParameterName = "@Name";
                 parameter.Value = category.Name;
                 sqlCommand.Parameters.Add(parameter);
 
-                parameter = new SqlParameter();
-                parameter.SqlDbType = System.Data.SqlDbType.NVarChar;
+                parameter = providerFactory.CreateParameter();
+                parameter.DbType = System.Data.DbType.String;
                 parameter.ParameterName = "@ImagePath";
                 parameter.Value = category.ImagePath;
                 sqlCommand.Parameters.Add(parameter);
 
+                connection.ConnectionString = connectionString;
                 connection.Open();
 
-                ExecuteCommandsInTransaction(sqlCommand);
+                using (DbTransaction transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        sqlCommand.Transaction = transaction;
+                        sqlCommand.ExecuteNonQuery();
+                        //и так далее тоже самое с другими командами
+                        transaction.Commit();
+                    }
+                    catch (DbException exception)
+                    {
+                        transaction.Rollback();
+                    }
+                }
             }
         }
 
-        private void ExecuteCommandsInTransaction(params SqlCommand[] commands)
-        {
-            using (SqlTransaction transaction = connection.BeginTransaction())
-            {
-                try
-                {
-                    foreach (var command in commands)
-                    {
-                        command.Transaction = transaction;
-                        command.ExecuteNonQuery();
-                        //и так далее тоже самое с другими командами
-                    }
-                    transaction.Commit();
-                }
-                catch (SqlException exception)
-                {
-                    transaction.Rollback();
-                }
-            }
-        }
+        //private void ExecuteCommandsInTransaction(params SqlCommand[] commands)
+        //{
+
+        //    using (SqlTransaction transaction = connection.BeginTransaction())
+        //    {
+        //        try
+        //        {
+        //            foreach (var command in commands)
+        //            {
+        //                command.Transaction = transaction;
+        //                command.ExecuteNonQuery();
+        //                //и так далее тоже самое с другими командами
+        //            }
+        //            transaction.Commit();
+        //        }
+        //        catch (SqlException exception)
+        //        {
+        //            transaction.Rollback();
+        //        }
+        //    }
+        //}
 
         public void Delete(Guid categoryId)
         {
@@ -96,13 +105,15 @@ namespace Shop.DataAccess
 
         public ICollection<Category> GetAll()
         {
-            using (SqlConnection connection = new SqlConnection(connectionString))
-            using (SqlCommand sqlCommand = connection.CreateCommand())
+            using (DbConnection connection = providerFactory.CreateConnection())
+            using (DbCommand sqlCommand = connection.CreateCommand())
             {
                 string query = $"select * from Categories;";
                 sqlCommand.CommandText = query;
+
+                connection.ConnectionString = connectionString;
                 connection.Open();
-                SqlDataReader sqlDataReader = sqlCommand.ExecuteReader();
+                DbDataReader sqlDataReader = sqlCommand.ExecuteReader();
 
                 List<Category> categories = new List<Category>();
                 while (sqlDataReader.Read())
@@ -124,5 +135,6 @@ namespace Shop.DataAccess
         {
             throw new NotImplementedException();
         }
+
     }
 }

@@ -11,11 +11,6 @@
  */
 
 using Microsoft.Extensions.Configuration;
-using Shop.DataAccess;
-using Shop.DataAccess.Abstract;
-using Shop.Domain;
-using System;
-using System.IO;
 
 namespace Shop.UI
 {
@@ -24,34 +19,44 @@ namespace Shop.UI
         static void Main(string[] args)
         {
             #region
-            //var builder = new ConfigurationBuilder()
-            //    .SetBasePath(Directory.GetCurrentDirectory())
-            //    .AddJsonFile("appsettings", false, true);
-            //IConfigurationRoot configurationRoot = builder.Build();
 
-            //#region main
-            //Category category = new Category
-            //{
-            //    Name = "Бытовая техника",
-            //    ImagePath = @"C:/data",
-            //};
 
-            //ICategoryRepository repository = new CategoryRepository(configurationRoot.GetConnectionString("DebugConnectionString"));
-            //repository.Add(category);
-            //var result = repository.GetAll();
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", false, true);
+            IConfigurationRoot configurationRoot = builder.Build();
+
+            var providerName = configurationRoot.GetSection("AppConfig").GetChildren().Single(item => item.Key == "ProviderName").Value;
+
+            ICategoryRepository repository = new CategoryRepository(
+                configurationRoot.GetConnectionString("DebugConnectionString"), providerName);
+
+            DbProviderFactories.RegisterFactory(providerName, SqlClientFactory.Instance);
+
+
 
 
             #endregion
             #region Repository Test
-            Repository<User> repository = new Repository<User>();
-            repository.Add(new User
-            { 
-                Address = "Abay st. 129",
-                Email = "10tek3@mail.com",
-                Password = "123",
-                PhoneNumber = "+77786226134",
-                VerificationCode = "123"
-            });
+            //Category category2 = new Category
+            //{
+            //    Name = "Мышки",
+            //    ImagePath = @"C:/data",
+            //};
+
+            //Repository<Category> repository = new Repository<Category>(configurationRoot.GetConnectionString("DebugConnectionString"));
+            //repository.Add(category2);
+            //var res = repository.GetAll();
+
+            //Repository<User> repository = new Repository<User>("");
+            //repository.Add(new User
+            //{ 
+            //    Address = "Abay st. 129",
+            //    Email = "10tek3@mail.com",
+            //    Password = "123",
+            //    PhoneNumber = "+77786226134",
+            //    VerificationCode = "123"
+            //});
             #endregion
 
 
