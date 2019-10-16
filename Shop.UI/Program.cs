@@ -10,7 +10,13 @@
  * unit of work
  */
 
+using Airport.DataAccess;
 using Microsoft.Extensions.Configuration;
+using System.Data.Common;
+using System.Data.SqlClient;
+using Shop.Domain;
+using System.IO;
+using System.Linq;
 
 namespace Shop.UI
 {
@@ -19,20 +25,15 @@ namespace Shop.UI
         static void Main(string[] args)
         {
             #region
-
-
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", false, true);
             IConfigurationRoot configurationRoot = builder.Build();
-
+            var connectionString = configurationRoot.GetConnectionString("DebugConnectionString");
             var providerName = configurationRoot.GetSection("AppConfig").GetChildren().Single(item => item.Key == "ProviderName").Value;
-
-            ICategoryRepository repository = new CategoryRepository(
-                configurationRoot.GetConnectionString("DebugConnectionString"), providerName);
 
             DbProviderFactories.RegisterFactory(providerName, SqlClientFactory.Instance);
 
+            Repository<Category> repository = new Repository<Category>(connectionString, providerName);
 
 
 
