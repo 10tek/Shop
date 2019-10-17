@@ -39,8 +39,8 @@ namespace Shop.UI
                 context.Categories.Add(category);
                 context.SaveChanges();
             }
-
-
+            string test = null;
+            var text = string.Empty;
         }
     }
 }
