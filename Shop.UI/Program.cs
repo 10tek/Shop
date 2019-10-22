@@ -31,94 +31,105 @@ namespace Shop.UI
             IConfigurationRoot configurationRoot = builder.Build();
             var connectionString = configurationRoot.GetConnectionString("DebugConnectionString");
 
-            Category category = new Category
-            {
-                Name = "ПК",
-                ImagePath = "C:/data/pc"
-            };
             using (var context = new ShopContext(connectionString))
             {
-                context.Categories.Add(new Category
-                {
-                    Name = "Мониторы",
-                    ImagePath = "C:/Categories/m"
-                });
-                context.Categories.Add(new Category
-                {
-                    Name = "Бытовая техника",
-                    ImagePath = "C:/Categories/b"
-                });
-                context.Categories.Add(new Category
-                {
-                    Name = "Кондиционеры",
-                    ImagePath = "C:/Categories/k"
-                });
-                context.Categories.Add(new Category
-                {
-                    Name = "Холодильники",
-                    ImagePath = "C:/Categories/f"
-                });
-                context.Categories.Add(new Category
-                {
-                    Name = "Газовые плиты",
-                    ImagePath = "C:/Categories/p"
-                });
+                #region Заполнение
+                //Category monitors = new Category
+                //{
+                //    Name = "Мониторы",
+                //    ImagePath = "C:/Categories/m"
+                //};
+                //Category tech = new Category
+                //{
+                //    Name = "Бытовая техника",
+                //    ImagePath = "C:/Categories/b"
+                //};
+                //Category cond = new Category
+                //{
+                //    Name = "Кондиционеры",
+                //    ImagePath = "C:/Categories/k"
+                //};
+                //Category freez = new Category
+                //{
+                //    Name = "Холодильники",
+                //    ImagePath = "C:/Categories/f"
+                //};
+                //Category plits = new Category
+                //{
+                //    Name = "Газовые плиты",
+                //    ImagePath = "C:/Categories/p"
+                //};
+                //context.AddRange(monitors, tech, cond, freez, plits);
 
+                //Item item = new Item
+                //{
+                //    Category = monitors,
+                //    Description = "Красивый монитор",
+                //    ImagePath = "d:/monitors",
+                //    Name = "LG-123123",
+                //    Price = 39990
+                //};
+
+                //User user = new User
+                //{
+                //    Email = "azazel@bla.bla",
+                //    Password = "zazazel123",
+                //    PhoneNumber = "123123123",
+                //};
+
+                //Comment comment = new Comment
+                //{
+                //    Item = item,
+                //    Rating = 5,
+                //    Text = "Купил, вроде збс",
+                //    User = user,
+                //};
+                //context.Add(item);
+                //context.Add(user);
+                //context.Add(comment);
+
+                //Comment secondComment = new Comment
+                //{
+                //    Item = item,
+
+                //}
+
+                context.SaveChanges();
+                #endregion
             }
 
-            using (var context = new ShopContext(connectionString))
-            {
-                SearchService searchService = new SearchService(context);
-                var pageNumber = 1;
-                while (true)
-                {
-                    var key = Console.ReadKey().Key;
-                    if (key == ConsoleKey.RightArrow)
-                    {
-                        ++pageNumber;
-                    }
-                    else if (key == ConsoleKey.LeftArrow)
-                    {
-                        --pageNumber;
-                    }
-                    else
-                    {
-                        Console.WriteLine("Введите номер страницы ");
-                        if(int.TryParse(Console.ReadLine(), out pageNumber){
+            #region Pagination
+            //using (var context = new ShopContext(connectionString))
+            //{
+            //    SearchService searchService = new SearchService(context);
+            //    var pageNumber = 1;
+            //    while (true)
+            //    {
+            //        var key = Console.ReadKey().Key;
+            //        if (key == ConsoleKey.RightArrow)
+            //        {
+            //            ++pageNumber;
+            //        }
+            //        else if (key == ConsoleKey.LeftArrow)
+            //        {
+            //            --pageNumber;
+            //        }
+            //        else
+            //        {
+            //            Console.WriteLine("Введите номер страницы ");
+            //            if(int.TryParse(Console.ReadLine(), out pageNumber){
 
-                        }
-                        searchService.ShowCategories(pageNumber);
-                    }
-                }
+            //            }
+            //            searchService.ShowCategories(pageNumber);
+            //        }
+            //    }
+            //}
+            #endregion
 
-            }
 
-            
 
         }
 
 
-
-        static void ProcessCollections()
-        {
-            List<string> cityNames = new List<string>
-            {
-                "Алматы", "Анкара", "Борисвиль", "Нур-Султан", "Ялта"
-            };
-
-            List<string> processedCityNames = new List<string>();
-            foreach (var name in cityNames)
-            {
-                if (name.Contains('-'))
-                {
-                    processedCityNames.Add(name);
-                }
-            }
-            var result = from name in cityNames where name.Contains('-') select name;
-            processedCityNames = cityNames.Where(name => name.Contains('-')).ToList();
-            
-
-        
-        }
     }
 }

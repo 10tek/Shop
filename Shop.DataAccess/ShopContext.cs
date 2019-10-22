@@ -14,6 +14,9 @@ namespace Shop.DataAccess
         }
 
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Item> Items { get; set; }
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<User> Users { get; set; }
         // и точно такие же другие сущности
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
