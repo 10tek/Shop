@@ -6,7 +6,6 @@ namespace Shop.Services.Abstract
 {
     public interface IRegistration
     {
-        void Register(string accaunt);
-        bool CheckCode(int code);
+        int SendCode(string phoneNumber);
     }
 }

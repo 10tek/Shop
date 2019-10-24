@@ -10,6 +10,16 @@
  * unit of work
  */
 
+/* TRIGGER
+use ShopEF;
+GO
+CREATE TRIGGER Products_INSERT
+ON Comments
+AFTER INSERT
+AS
+UPDATE Items
+Set AvgRating = (select AVG(Rating) from Comments as q where ItemId = q.ItemId);*/
+
 using Microsoft.Extensions.Configuration;
 using Shop.DataAccess;
 using Shop.Domain;
@@ -59,7 +69,7 @@ namespace Shop.UI
                 //    Name = "Газовые плиты",
                 //    ImagePath = "C:/Categories/p"
                 //};
-                //context.AddRange(monitors, tech, cond, freez, plits);
+                ////context.AddRange(monitors, tech, cond, freez, plits);
 
                 //Item item = new Item
                 //{
@@ -70,11 +80,22 @@ namespace Shop.UI
                 //    Price = 39990
                 //};
 
-                //User user = new User
+                //User firstUser = new User
                 //{
-                //    Email = "azazel@bla.bla",
                 //    Password = "zazazel123",
                 //    PhoneNumber = "123123123",
+                //};
+
+                //User secondUser = new User
+                //{
+                //    Password = "zazazel123",
+                //    PhoneNumber = "123123123",
+                //};
+
+                //User thirdUser = new User
+                //{
+                //    Password = "zaza2223",
+                //    PhoneNumber = "12123123",
                 //};
 
                 //Comment comment = new Comment
@@ -82,20 +103,34 @@ namespace Shop.UI
                 //    Item = item,
                 //    Rating = 5,
                 //    Text = "Купил, вроде збс",
-                //    User = user,
+                //    User = firstUser,
                 //};
-                //context.Add(item);
-                //context.Add(user);
-                //context.Add(comment);
 
                 //Comment secondComment = new Comment
                 //{
                 //    Item = item,
+                //    Rating = 3,
+                //    Text = "Купил, фигня",
+                //    User = secondUser
+                //};
 
-                //}
+                ////context.Add(item);
+                ////context.Add(firstUser);
+                ////context.Add(secondUser);
+                ////context.Add(comment);
+                ////context.Add(secondComment);
 
+                //Comment thirdComment = new Comment
+                //{
+                //    Item = item,
+                //    Rating = 1,
+                //    Text = "Купил, govno",
+                //    User = thirdUser
+                //};
+                //context.Add(thirdComment);
                 context.SaveChanges();
                 #endregion
+
             }
 
             #region Pagination
@@ -125,11 +160,6 @@ namespace Shop.UI
             //    }
             //}
             #endregion
-
-
-
         }
-
-
     }
 }

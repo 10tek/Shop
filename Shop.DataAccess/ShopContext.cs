@@ -23,8 +23,5 @@ namespace Shop.DataAccess
         {
             optionsBuilder.UseSqlServer(connectionString);
         }
-
-
-
     }
 }
