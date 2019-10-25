@@ -10,13 +10,13 @@
  * unit of work
  */
 
-using Airport.DataAccess;
 using Microsoft.Extensions.Configuration;
 using System.Data.Common;
 using System.Data.SqlClient;
 using Shop.Domain;
 using System.IO;
 using System.Linq;
+using Shop.DataAccess;
 
 namespace Shop.UI
 {
@@ -24,7 +24,6 @@ namespace Shop.UI
     {
         static void Main(string[] args)
         {
-            #region
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory())
                 .AddJsonFile("appsettings.json", false, true);
             IConfigurationRoot configurationRoot = builder.Build();
@@ -33,33 +32,38 @@ namespace Shop.UI
 
             DbProviderFactories.RegisterFactory(providerName, SqlClientFactory.Instance);
 
-            Repository<Category> repository = new Repository<Category>(connectionString, providerName);
+            using (var context = new ShopContext(connectionString, providerName))
+            {
+                var category = new Category
+                {
+                    Name = "Компьютерная переферия",
+                    ImagePath = "D:/1/123"
+                };
+                context.Categories.Add(category);
 
+                context.Categories.Add(new Category
+                {
+                    Name = "Мониторы",
+                    ImagePath = "D:/1/123"
+                });
 
+                context.Categories.Add(new Category
+                {
+                    Name = "Клавиатуры",
+                    ImagePath = "D:/1/123"
+                });
 
-            #endregion
-            #region Repository Test
-            //Category category2 = new Category
-            //{
-            //    Name = "Мышки",
-            //    ImagePath = @"C:/data",
-            //};
+                context.Users.Add(new User
+                {
+                    PhoneNumber = "123123",
+                    Password = "123123"
+                });
 
-            //Repository<Category> repository = new Repository<Category>(configurationRoot.GetConnectionString("DebugConnectionString"));
-            //repository.Add(category2);
-            //var res = repository.GetAll();
-
-            //Repository<User> repository = new Repository<User>("");
-            //repository.Add(new User
-            //{ 
-            //    Address = "Abay st. 129",
-            //    Email = "10tek3@mail.com",
-            //    Password = "123",
-            //    PhoneNumber = "+77786226134",
-            //    VerificationCode = "123"
-            //});
-            #endregion
-
+                var categories = context.Categories.GetAll();
+                category.ImagePath = "C:/2/535";
+                context.Categories.Update(category);
+                context.Categories.Delete(category.Id);
+            }
 
         }
     }

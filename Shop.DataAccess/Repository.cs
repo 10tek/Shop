@@ -8,8 +8,10 @@ using Newtonsoft.Json.Converters;
 using System.Data;
 using Shop.DataAccess.Abstract;
 using Shop.Domain;
+using Dapper;
+using System.Linq;
 
-namespace Airport.DataAccess
+namespace Shop.DataAccess
 {
     public class Repository<T> : IRepository<T>, IDisposable where T : Entity
     {
@@ -28,58 +30,46 @@ namespace Airport.DataAccess
         /// <summary>
         /// Добавление в БД, принимает любую сущность, если она наследуется от Entity
         /// </summary>
-        /// <param name="item"></param>
-        public void Add(T item)
+        /// <param name="element"></param>
+        public void Add(T element)
         {
-            using (DbCommand dbCommand = connection.CreateCommand())
+            var stringBuilder = new StringBuilder();
+            stringBuilder.Append($"INSERT into [{type.Name}] (");
+
+            foreach (var propertyInfo in type.GetProperties())
             {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append($"INSERT into {type.Name} (");
-                DbParameter parameter;
-
-                foreach (var propertyInfo in type.GetProperties())
+                if (IsNullOrEmpty(propertyInfo, element))
                 {
-                    if (IsNullOrEmpty(propertyInfo, item))
-                    {
-                        stringBuilder.Append($"[{propertyInfo.Name}], ");
-                    }
+                    stringBuilder.Append($"[{propertyInfo.Name}], ");
                 }
-                stringBuilder.Remove(stringBuilder.Length - 2, 1);
-                stringBuilder.Append(") Values (");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 2, 1);
+            stringBuilder.Append(") Values (");
 
-                foreach (var propertyInfo in type.GetProperties())
+            foreach (var propertyInfo in type.GetProperties())
+            {
+                if (IsNullOrEmpty(propertyInfo, element))
                 {
-                    if (IsNullOrEmpty(propertyInfo, item))
-                    {
-                        parameter = providerFactory.CreateParameter();
-
-                        parameter.DbType = GetDbType(propertyInfo.PropertyType.ToString());
-                        parameter.ParameterName = $"@{propertyInfo.Name}";
-                        parameter.Value = propertyInfo.GetValue(item);
-
-                        dbCommand.Parameters.Add(parameter);
-                        stringBuilder.Append($"{parameter.ParameterName}, ");
-                    }
+                    stringBuilder.Append($"@{propertyInfo.Name}, ");
                 }
-                stringBuilder.Remove(stringBuilder.Length - 2, 1);
-                stringBuilder.Append(");");
+            }
+            stringBuilder.Remove(stringBuilder.Length - 2, 1);
+            stringBuilder.Append(");");
 
-                dbCommand.CommandText = stringBuilder.ToString();
+            var sqlQuery = stringBuilder.ToString();
 
-                using (DbTransaction transaction = connection.BeginTransaction())
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
                 {
-                    try
-                    {
-                        dbCommand.Transaction = transaction;
-                        dbCommand.ExecuteNonQuery();
-                        //и так далее тоже самое с другими командами
-                        transaction.Commit();
-                    }
-                    catch (DbException exception)
-                    {
-                        Console.WriteLine(exception.Message);
-                        transaction.Rollback();
-                    }
+                    var rowAffected = connection.Execute(sqlQuery, element, transaction);
+                    //и так далее тоже самое с другими командами
+                    transaction.Commit();
+                }
+                catch (DbException exception)
+                {
+                    Console.WriteLine(exception.Message);
+                    transaction.Rollback();
                 }
             }
         }
@@ -90,109 +80,56 @@ namespace Airport.DataAccess
         /// <param name="elementId"></param>
         public void Delete(Guid elementId)
         {
-            using (DbCommand dbCommand = connection.CreateCommand())
+            var sqlQuery = $"update [{type.Name}] set DeletedDate = '{DateTime.Now.ToShortDateString()}' where Id = '{elementId}';";
+            using (DbTransaction transaction = connection.BeginTransaction())
             {
-                var query = $"update [{type.Name}] set DeletedDate = '{DateTime.Now.ToShortDateString()}' where Id = '{elementId}';";
-                dbCommand.CommandText = query;
-                using (DbTransaction transaction = connection.BeginTransaction())
+                try
                 {
-                    try
-                    {
-                        dbCommand.Transaction = transaction;
-                        dbCommand.ExecuteNonQuery();
-                        //и так далее тоже самое с другими командами
-                        transaction.Commit();
-                    }
-                    catch (DbException exception)
-                    {
-                        transaction.Rollback();
-                    }
+                    var rowAffected = connection.Execute(sqlQuery, new { Id = elementId }, transaction);
+                    //и так далее тоже самое с другими командами
+                    transaction.Commit();
+                }
+                catch (DbException exception)
+                {
+                    Console.WriteLine(exception.Message);
+                    transaction.Rollback();
                 }
             }
         }
 
         public ICollection<T> GetAll()
         {
-            using (DbCommand dbCommand = connection.CreateCommand())
-            {
-                List<T> table = new List<T>();
-                var name = typeof(T).Name.ToString();
-                var query = $"Select * From {name};";
-                dbCommand.CommandText = query;
-
-                connection.Open();
-                var dbDataReader = dbCommand.ExecuteReader();
-
-                string json = $"[";
-                while (dbDataReader.Read())
-                {
-                    json += "{";
-                    for (int i = 0; i < dbDataReader.FieldCount; i++)
-                    {
-                        json += $@" {dbDataReader.GetName(i)} : {(dbDataReader.GetValue(i) is null ? "null" : $@"""{dbDataReader.GetValue(i)}""")}";
-                        if (i != dbDataReader.FieldCount - 1)
-                        {
-                            json += ",";
-                        }
-                    }
-                    json += "},";
-                }
-                json += "]";
-                json = json.Replace(@"""""", "null");
-                var format = "dd/MM/yyyy HH:mm:ss";
-                var dateTimeConverter = new IsoDateTimeConverter { DateTimeFormat = format };
-                table = JsonConvert.DeserializeObject<List<T>>(json, dateTimeConverter);
-                return table;
-            }
+            var sqlQuery = $"Select * From {type.Name.ToString()};";
+            var table = connection.Query<T>(sqlQuery).ToList();
+            return table;
         }
 
         public void Update(T element)
         {
-            using (DbCommand dbCommand = connection.CreateCommand())
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.Append($"Update [{type.Name}] Set ");
+
+            foreach (var propertyInfo in type.GetProperties())
             {
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.Append($"Update [{type.Name}] Set ");
-                var propCount = type.GetProperties().Length;
-                var dbParameters = new List<DbParameter>();
-                DbParameter parameter;
-                foreach (var propertyInfo in type.GetProperties())
+                if (propertyInfo.GetValue(element) is null) continue;
+                stringBuilder.Append($"@{propertyInfo.Name.ToString()} = @{propertyInfo.Name.ToString()}, ");
+            }
+
+            stringBuilder.Remove(stringBuilder.Length - 2, 1);
+            stringBuilder.Append($" Where Id = {element.Id};");
+            var sqlQuery = stringBuilder.ToString();
+            using (var transaction = connection.BeginTransaction())
+            {
+                try
                 {
-                    if (IsNullOrEmpty(propertyInfo, element))
-                    {
-                        parameter = providerFactory.CreateParameter();
-
-                        parameter.DbType = GetDbType(propertyInfo.PropertyType.ToString());
-                        parameter.ParameterName = $"@{propertyInfo.Name}";
-                        parameter.Value = propertyInfo.GetValue(element);
-                        parameter.IsNullable = (propertyInfo.PropertyType.ToString().Contains("Nullable") ? true : false);
-
-                        dbParameters.Add(parameter);
-                    }
+                    var rawAffected = connection.Execute(sqlQuery, element, transaction);
+                    //и так далее тоже самое с другими командами
+                    transaction.Commit();
                 }
-                for (int i = 0; i < propCount; i++)
+                catch (DbException exception)
                 {
-                    stringBuilder.Append(dbParameters[i].Value is null ? "" : $"[{dbParameters[i].ParameterName.Substring(1)}] = {dbParameters[i].ParameterName}");
-                    if (i != propCount - 1)
-                    {
-                        stringBuilder.Append(",");
-                    }
-                }
-                stringBuilder.Append($" Where Id = {element.Id};");
-                dbCommand.CommandText = stringBuilder.ToString();
-
-                using (DbTransaction transaction = connection.BeginTransaction())
-                {
-                    try
-                    {
-                        dbCommand.Transaction = transaction;
-                        dbCommand.ExecuteNonQuery();
-                        //и так далее тоже самое с другими командами
-                        transaction.Commit();
-                    }
-                    catch (DbException exception)
-                    {
-                        transaction.Rollback();
-                    }
+                    Console.WriteLine(exception.Message);
+                    transaction.Rollback();
                 }
             }
         }
