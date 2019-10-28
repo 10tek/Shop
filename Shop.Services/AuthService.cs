@@ -10,25 +10,43 @@ namespace Shop.Services
     public class AuthService
     {
         private readonly ShopContext context;
-        BcryptHasher bcryptHasher = new BcryptHasher();
+        private BcryptHasher bcryptHasher = new BcryptHasher();
+        private EmailVerification emailVerification = new EmailVerification();
 
         public AuthService(ShopContext context)
         {
             this.context = context;
         }
 
-        public void SignUp(string phoneNumber, string password)
+        public User SignUp(string email, string password)
         {
-            context.Add(new User
+            if (Authentication(email)) return null;
+            var user = new User
             {
-                PhoneNumber = phoneNumber,
+                Email = email,
                 Password = bcryptHasher.EncryptPassword(password)
-            });
+            };
+
+            context.Add(user);
+            context.SaveChanges();
+            return user;
         }
 
-        public bool SignIn(string phoneNumber, string password)
+        public User SignIn(string email, string password)
         {
+            var user = context.Users.SingleOrDefault(x => x.Email == email);
+            if (user is null || !BCrypt.Net.BCrypt.Verify(password, user.Password)) 
+                return null;
+            return user;
+        }
 
+        private bool Authentication(string email)
+        {
+            if (context.Users.SingleOrDefault(x => x.Email == email) is null)
+            {
+                return false;
+            }
+            return true;
         }
     }
 }
