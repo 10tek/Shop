@@ -8,6 +8,7 @@ namespace Shop.Domain
     {
         public string Name { get; set; }
         public string ImagePath { get; set; }
+        public string Description { get; set; }
         // опционально коллекция товаров.
     }
 }

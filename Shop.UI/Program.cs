@@ -17,6 +17,8 @@ using Shop.Domain;
 using System.IO;
 using System.Linq;
 using Shop.DataAccess;
+using System.Reflection;
+using DbUp;
 
 namespace Shop.UI
 {
@@ -32,37 +34,48 @@ namespace Shop.UI
 
             DbProviderFactories.RegisterFactory(providerName, SqlClientFactory.Instance);
 
+            EnsureDatabase.For.SqlDatabase(connectionString);
+
+            var upgrader =
+                DeployChanges.To
+                    .SqlDatabase(connectionString)
+                    .WithScriptsEmbeddedInAssembly(Assembly.GetExecutingAssembly())
+                    .LogToConsole()
+                    .Build();
+
+            upgrader.PerformUpgrade();
             using (var context = new ShopContext(connectionString, providerName))
             {
-                var category = new Category
-                {
-                    Name = "Компьютерная переферия",
-                    ImagePath = "D:/1/123"
-                };
-                context.Categories.Add(category);
+                //var category = new Category
+                //{
+                //    Name = "Компьютерная переферия",
+                //    ImagePath = "D:/1/123"
+                //};
 
-                context.Categories.Add(new Category
-                {
-                    Name = "Мониторы",
-                    ImagePath = "D:/1/123"
-                });
+                //context.Categories.Add(category);
 
-                context.Categories.Add(new Category
-                {
-                    Name = "Клавиатуры",
-                    ImagePath = "D:/1/123"
-                });
+                //context.Categories.Add(new Category
+                //{
+                //    Name = "Мониторы",
+                //    ImagePath = "D:/1/123"
+                //});
 
-                context.Users.Add(new User
-                {
-                    PhoneNumber = "123123",
-                    Password = "123123"
-                });
+                //context.Categories.Add(new Category
+                //{
+                //    Name = "Клавиатуры",
+                //    ImagePath = "D:/1/123"
+                //});
 
-                var categories = context.Categories.GetAll();
-                category.ImagePath = "C:/2/535";
-                context.Categories.Update(category);
-                context.Categories.Delete(category.Id);
+                //context.Users.Add(new User
+                //{
+                //    PhoneNumber = "123123",
+                //    Password = "123123"
+                //});
+
+                //var categories = context.Categories.GetAll();
+                //category.ImagePath = "C:/2/535";
+                //context.Categories.Update(category);
+                //context.Categories.Delete(category.Id);
             }
 
         }
