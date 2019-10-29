@@ -23,7 +23,7 @@ namespace Shop.UI
         public User SignUp()
         {
             int codeFromUser;
-            Console.Write("  Введите почтовый адресс: ");
+            Console.Write("  Введите почтовый адрес: ");
             email = Console.ReadLine();
             User user;
             int verificationCode = emailVerification.SendCode(email);
@@ -46,7 +46,7 @@ namespace Shop.UI
 
         public User SignIn()
         {
-            Console.Write("Введите почтовый адресс: ");
+            Console.Write("Введите почтовый адрес: ");
             email = Console.ReadLine();
             Console.Write("         Введите пароль: ");
             MaskPassword();
@@ -58,7 +58,7 @@ namespace Shop.UI
             }
             else
             {
-                Console.WriteLine("Неккоректные данные!");
+                Console.WriteLine("Некорректные данные!");
                 return null;
             }
         }

@@ -28,7 +28,7 @@ namespace Shop.Services
                 Console.Write("Введите номер страницы или цифру 0 для выхода: ");
                 if (int.TryParse(Console.ReadLine(), out pageNumber) && GetPageCount(items) >= pageNumber && pageNumber > 0)
                 {
-                    ShowOnePage(items);
+                    ShowOnePage(items, pageNumber);
                 }
                 else
                 {
@@ -47,7 +47,7 @@ namespace Shop.Services
                 Console.Write("Введите номер страницы или цифру 0 для выхода: ");
                 if (int.TryParse(Console.ReadLine(), out pageNumber) && GetPageCount(items) >= pageNumber && pageNumber > 0)
                 {
-                    ShowOnePage(items);
+                    ShowOnePage(items, pageNumber);
                 }
                 else
                 {
@@ -71,7 +71,7 @@ namespace Shop.Services
                 Console.Write("Введите номер страницы или цифру 0 для выхода: ");
                 if (int.TryParse(Console.ReadLine(), out pageNumber) && GetPageCount(items) >= pageNumber && pageNumber > 0)
                 {
-                    ShowOnePage(items);
+                    ShowOnePage(items, pageNumber);
                 }
                 else
                 {
