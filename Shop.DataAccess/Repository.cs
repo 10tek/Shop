@@ -1,15 +1,12 @@
-﻿using System;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-using System.Data;
+﻿using Dapper;
 using Shop.DataAccess.Abstract;
 using Shop.Domain;
-using Dapper;
+using System;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 
 namespace Shop.DataAccess
 {
@@ -143,31 +140,6 @@ namespace Shop.DataAccess
         private bool IsNullOrEmpty(PropertyInfo propertyInfo, T item)
         {
             return !(propertyInfo.PropertyType.ToString().Contains("Nullable") && propertyInfo.GetValue(item) is null);
-        }
-
-        /// <summary>
-        /// Принимает тип C# и возвращает его аналогию в DbType
-        /// </summary>
-        /// <param name="type"></param>
-        /// <returns></returns>
-        private DbType GetDbType(string type)
-        {
-            switch (type)
-            {
-                case "System.String": return DbType.String;
-                case "System.Guid": return DbType.Guid;
-                case "System.DateTime": return DbType.Date;
-                case "System.Boolean": return DbType.Boolean;
-                case "System.Int64": return DbType.Int64;
-                case "System.Byte": return DbType.Byte;
-                case "System.Byte[]": return DbType.Binary;
-                case "System.DateTimeOffset": return DbType.DateTimeOffset;
-                case "System.Decimal": return DbType.Decimal;
-                case "System.Double": return DbType.Double;
-                case "System.Int32": return DbType.Int32;
-                case "System.Int16": return DbType.Int16;
-                default: return DbType.String;
-            }
         }
 
         public void Dispose()
