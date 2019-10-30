@@ -32,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Shop.DataAccess\Shop.DataAccess.csproj" />
     <ProjectReference Include="..\Shop.Domain\Shop.Domain.csproj" />
+    <ProjectReference Include="..\Shop.Services\Shop.Services.csproj" />
   </ItemGroup>
 
 </Project>
