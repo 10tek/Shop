@@ -10,8 +10,8 @@ namespace Shop.Domain
         public string ImagePath { get; set; }
         public int Price { get; set; }
         public string Description { get; set; }
-        public Guid CategoryId { get; set; }
-
+        public double AvgRating { get; set; } = 0;
+        public Category Category { get; set; }
         // рейтинг, комментарии, категория
     }
 }
